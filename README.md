@@ -179,38 +179,6 @@ SDV/
 - Access to a THREDDS Data Server instance
 - Oceanographic NetCDF datasets
 
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/your-username/SDV-Satellite-Data-Viewer.git
-
-# Navigate into project
-cd SDV-Satellite-Data-Viewer
-
-# Create virtual environment
-python -m venv venv
-
-# Activate environment
-source venv/bin/activate
-
-# Windows:
-venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start Flask server
-python backend/app.py
-```
-
-Open:
-```text
-http://localhost:5000
-```
-
----
-
 ## 🔮 Future Enhancements
 
 - Advanced False Color Composite (FCC) rendering
