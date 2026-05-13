@@ -1,4 +1,42 @@
-<div align="center">
+
+
+https://github.com/user-attachments/assets/b8fe7e2c-f30b-46d3-b25b-8a5224f6820d
+
+
+
+SDV/
+├── backend/
+│   ├── app.py                      # Flask application entry point
+│   ├── data_handler.py             # THREDDS / NCSS data retrieval
+│   ├── processor.py                # NetCDF extraction & preprocessing
+│   ├── visualizer.py               # Geospatial rendering and visualization
+│   ├── utils.py                    # Helper utilities and shared functions
+│   └── requirements.txt            # Python dependencies
+│
+├── frontend/
+│   ├── index.html                  # Main web interface
+│   ├── css/
+│   │   └── styles.css              # UI styling and layout
+│   └── js/
+│       ├── map.js                  # Leaflet map initialization
+│       ├── animation.js            # Temporal playback controls
+│       ├── layers.js               # Layer rendering and management
+│       └── api.js                  # Backend API integration
+│
+├── config/
+│   └── settings.py                 # Server and dataset configuration
+│
+├── docs/
+│   ├── architecture.png            # System architecture diagram
+│   └── screenshots/                # Application screenshots
+│
+├── static/
+│   └── generated/                  # Runtime-generated visualization outputs
+│
+├── .gitignore
+├── LICENSE
+├── README.md
+└── requirements.txt<div align="center">
 🛰️ Satellite Data Viewer (SDV)
 Ocean Forecasting & Geospatial Visualization System
 Developed during a Summer Internship at the Indian National Centre for Ocean Information Services (INCOIS)
