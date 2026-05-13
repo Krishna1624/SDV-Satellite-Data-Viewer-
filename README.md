@@ -136,32 +136,14 @@ The system integrates:
 ```text
 SatelliteDashboard/
 ├── backend/
-│   ├── app.py                          # Flask application entry point
-│   ├── data_handler.py                 # THREDDS / NCSS data retrieval
-│   ├── processor.py                    # NetCDF extraction & preprocessing
-│   ├── visualizer.py                   # Geospatial visualization logic
-│   └── requirements.txt                # Backend dependencies
+│   ├── app.py                          # Flask application
 │
-├── templates/
+├── Frontend/
 │   └── ofs_d_n.html                    # Main frontend dashboard UI
 │
 ├── static/
-│   ├── css/
-│   │   └── styles.css                  # Dashboard styling
-│   │
-│   ├── js/
-│   │   ├── map.js                      # Leaflet map initialization
-│   │   ├── animation.js                # Temporal playback controls
-│   │   ├── layers.js                   # Raster layer rendering
-│   │   └── api.js                      # Backend API integration
-│   │
-│   ├── assets/
-│   │   ├── icons/
-│   │   ├── screenshots/
-│   │   └── legends/
-│   │
-│   └── generated/
-│       └── outputs/                    # Runtime-generated visualization outputs
+│   ├── india_ocean_clip.geojson        # Indian Ocean boundary clipping layer
+│   ├── logo.png                   # Runtime-generated visualization outputs
 │
 ├── utils/
 │   ├── geospatial_utils.py             # Coordinate & projection helpers
@@ -223,17 +205,26 @@ SatelliteDashboard/
 
 ---
 
-## 📂 Note on Dataset Access
+## 📂 Note on Repository Contents
 
-The datasets used in this project belong to government scientific infrastructure and are not publicly distributed.
+Some files and datasets used during development are intentionally not included in this repository due to the following reasons:
 
-This repository contains only:
-- Application source code
-- Visualization workflows
-- Processing modules
-- Frontend/backend integration logic
+- Large satellite datasets and NetCDF files exceed GitHub storage limitations.
+- Government-provided oceanographic datasets used during the internship are restricted and cannot be publicly redistributed.
+- THREDDS server data directories contain dynamically generated scientific datasets intended for local deployment environments.
+- Runtime-generated visualization outputs, logs, cache files, and temporary media files were excluded to keep the repository lightweight and maintainable.
+- Apache Tomcat binaries and server files are external dependencies that can be installed separately using official distributions.
+- Virtual environments, compiled cache files (`__pycache__`), and generated outputs were omitted following standard software engineering practices.
+- Some configuration files and deployment-specific settings were excluded for portability and security reasons.
 
-No proprietary or restricted datasets are included.
+The repository includes:
+- Source code
+- Processing pipelines
+- Visualization logic
+- Frontend/backend integration
+- Documentation and project structure
+
+This ensures the project remains reproducible while maintaining repository efficiency and compliance with dataset usage policies.
 
 ---
 
