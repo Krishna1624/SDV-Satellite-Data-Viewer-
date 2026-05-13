@@ -131,42 +131,73 @@ The system integrates:
 
 ---
 
-# 🗂️ Project Structure
+## 🗂️ Project Structure
 
 ```text
-SDV/
+SatelliteDashboard/
 ├── backend/
-│   ├── app.py
-│   ├── data_handler.py
-│   ├── processor.py
-│   ├── visualizer.py
-│   ├── utils.py
-│   └── requirements.txt
+│   ├── app.py                          # Flask application entry point
+│   ├── data_handler.py                 # THREDDS / NCSS data retrieval
+│   ├── processor.py                    # NetCDF extraction & preprocessing
+│   ├── visualizer.py                   # Geospatial visualization logic
+│   └── requirements.txt                # Backend dependencies
 │
-├── frontend/
-│   ├── index.html
-│   ├── css/
-│   │   └── styles.css
-│   └── js/
-│       ├── map.js
-│       ├── animation.js
-│       ├── layers.js
-│       └── api.js
-│
-├── config/
-│   └── settings.py
-│
-├── docs/
-│   ├── architecture.png
-│   └── screenshots/
+├── templates/
+│   └── ofs_d_n.html                    # Main frontend dashboard UI
 │
 ├── static/
+│   ├── css/
+│   │   └── styles.css                  # Dashboard styling
+│   │
+│   ├── js/
+│   │   ├── map.js                      # Leaflet map initialization
+│   │   ├── animation.js                # Temporal playback controls
+│   │   ├── layers.js                   # Raster layer rendering
+│   │   └── api.js                      # Backend API integration
+│   │
+│   ├── assets/
+│   │   ├── icons/
+│   │   ├── screenshots/
+│   │   └── legends/
+│   │
 │   └── generated/
+│       └── outputs/                    # Runtime-generated visualization outputs
 │
-├── .gitignore
-├── LICENSE
+├── utils/
+│   ├── geospatial_utils.py             # Coordinate & projection helpers
+│   ├── netcdf_utils.py                 # NetCDF processing utilities
+│   └── animation_utils.py              # Animation helper functions
+│
+├── thredds_content/
+│   ├── catalogs/
+│   │   └── catalog.xml                 # THREDDS catalog configuration
+│   │
+│   ├── data/
+│   │   ├── metop/
+│   │   │   ├── level1_nc/              # FCC / CTT / TIR source datasets
+│   │   │   └── level2_avhrr/           # SST datasets
+│   │   │
+│   │   └── OCM3/
+│   │       └── chlorophyll/            # Chlorophyll datasets
+│   │
+│   └── thredds/
+│       ├── catalogs/
+│       └── logs/
+│
+├── Apache Software Foundation/
+│   └── Tomcat 9.0/
+│       ├── bin/
+│       ├── conf/
+│       ├── content/
+│       ├── lib/
+│       ├── logs/
+│       ├── temp/
+│       ├── webapps/
+│       └── work/
+│
 ├── README.md
-└── requirements.txt
+├── requirements.txt
+└── sdv.mp4                             # Project demonstration video
 ```
 
 > Later, the frontend architecture was consolidated into a single integrated frontend file for simplified deployment and management.
