@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Satellite Data Viewer(SDV)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-fullscreen@1.6.0/dist/leaflet.fullscreen.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-fullscreen@1.6.0/dist/Leaflet.fullscreen.min.js"></script>
+  <style>
+    html, body {
+      margin: 0; height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    .header {
+      background-color: #00587a; 
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 15px;
+      position: relative;
+      z-index: 1002;
+    }
+    .hamburger {
+      font-size: 22px;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    .title {
+      flex-grow: 1;
+      text-align: center;
+      font-size: 18px;
+    }
+    .logo {
+      height: 36px;
+    }
+    .sidebar {
+      position: fixed;
+      top: 50px;
+      left: -270px;
+      width: 220px;
+      height: calc(100% - 50px);
+      background: #007499;
+      color: white;
+      padding: 20px 15px;
+      transition: left 0.3s ease;
+      z-index: 1001;
+      overflow-y: auto;
+    }
+    .sidebar.open {
+      left: 0;
+    }
+    .sidebar label, .sidebar select, .sidebar input, .sidebar button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 6px;
+      border: none;
+      border-radius: 4px;
+    }
+    .sidebar button {
+      background: #0097b2;
+      color: white;
+      cursor: pointer;
+    }
+    #map {
+      height: calc(100% - 50px);
+      z-index: 1;
+    }
+    .controls {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1001;
+      display: flex;
+      gap: 10px;
+    }
+    .map-tools {
+      position: absolute;
+      top: 140px;
+      left: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1001;
+      transition: left 0.3s ease;
+    }
+    .map-tools button {
+      width: 36px;
+      height: 36px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+    }
+    .map-tools.shifted {
+      left: 270px; 
+    }
+
+    .map-tools button:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 45px;
+      background: #333;
+      color: white;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .legend {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      z-index: 1001;
+    }
+    .color-bar {
+      display: flex;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .color-bar span {
+      min-width: 30px;
+      text-align: center;
+    }
+    .gradient-bar {
+      height: 14px;
+      flex-grow: 1;
+      margin: 0 6px;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+    }
+    #timestamp {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 1001;
+    }
+    .latlon {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      z-index: 1001;
+}
+
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="hamburger" onclick="toggleSidebar()" id="hamburgerBtn">☰</button>
+    <div class="title">Satellite Data Viewer(SDV)</div>
+    <img src="/static/logo.jpg" class="logo" alt="Logo" />
+  </div>
+
+  <div class="sidebar" id="sidebar">
+    <label>Product</label>
+    <select id="product">
+      <option value="sst">Sea Surface Temperature</option>
+      <option value="chlorophyll">Chlorophyll-a</option>
+      <option value="fcc">False Color Composite</option>
+      <option value="ctt">Cloud Top Temperature</option>
+      <option value="thermal">Thermal Brightness</option>
+    </select>
+    <label>Satellite</label>
+    <select id="satellite">
+      <option value="metopb">Metop-B</option>
+      <option value="metopc">Metop-C</option>
+      <option value="ocm3">OCM-3</option>
+    </select>
+    <label>Sensor</label>
+    <select id="sensor">
+      <option value="avhrr">AVHRR</option>
+      <option value="eos06">EOS-06</option>
+    </select>
+    <label>Start Date</label>
+    <input type="date" id="startDate">
+    <label>End Date</label>
+    <input type="date" id="endDate">
+    <button onclick="loadData()">📡 Load Data</button>
+  </div>
+
+  <div id="map"></div>
+  <div id="timestamp">No Frame</div>
+
+  <div class="legend">
+    <div class="legend-title" id="legend-title">Legend</div>
+    <div class="color-bar">
+      <span id="min-temp">Low</span>
+      <div id="gradient-bar" class="gradient-bar"></div>
+      <span id="max-temp">High</span>
+    </div>
+  </div>
+
+  <div class="latlon" id="latlon">Lat: --, Lon: --</div>
+
+  <div class="controls">
+    <button onclick="prevFrame()">⏮ Prev</button>
+    <button onclick="togglePlayPause()" id="playBtn">▶ Play</button>
+    <button onclick="nextFrame()">Next ⏭</button>
+  </div>
+
+  <div class="map-tools">
+    <button onclick="shareMap()" data-tooltip="Share Map">🔗</button>
+    <button onclick="undoView()" data-tooltip="Undo View">↩️</button>
+    <button onclick="redoView()" data-tooltip="Redo View">↪️</button>
+    <button onclick="map.toggleFullscreen()" data-tooltip="Fullscreen">⛶</button>
+    <button onclick="openSettings()" data-tooltip="Settings">⚙️</button>
+    <button onclick="showAbout()" data-tooltip="About">ℹ️</button>
+  </div>
+
+<script>
+  const map = L.map("map", { fullscreenControl: true }).setView([22.22, 78.49], 5);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; OpenStreetMap & CartoDB'
+  }).addTo(map);
+
+  const sidebar = document.getElementById("sidebar");
+  const hamburgerBtn = document.getElementById("hamburgerBtn");
+
+  function toggleSidebar() {
+    sidebar.classList.toggle("open");
+    hamburgerBtn.textContent = sidebar.classList.contains("open") ? "❌" : "☰";
+    const mapTools = document.querySelector(".map-tools");
+    if (sidebar.classList.contains("open")) {
+      mapTools.classList.add("shifted");
+    } 
+    else {
+      mapTools.classList.remove("shifted");
+    }
+
+  }
+  document.addEventListener("click", e => {
+    if (!sidebar.contains(e.target) && e.target !== hamburgerBtn) {
+      sidebar.classList.remove("open");
+      document.querySelector(".map-tools").classList.remove("shifted");
+      hamburgerBtn.textContent = "☰";
+    }
+  });
+
+  map.on("mousemove", e => {
+    document.getElementById("latlon").textContent =
+      `Lat: ${e.latlng.lat.toFixed(2)}, Lon: ${e.latlng.lng.toFixed(2)}`;
+  });
+
+  const colormaps = {
+    sst: { title: "Sea Surface Temperature", gradient: "linear-gradient(to right, blue, cyan, green, yellow, red)" },
+    chlorophyll: { title: "Chlorophyll-a", gradient: "linear-gradient(to right, blue, cyan, green, yellow, red)" },
+    fcc: { title: "False Color Composite", gradient: "linear-gradient(to right, #000, #777, #fff)" },
+    ctt: { title: "Cloud Top Temperature", gradient: "linear-gradient(to right, blue, white)" },
+    thermal: { title: "Thermal Brightness", gradient: "linear-gradient(to right, black, orange, red)" }
+  };
+
+  let layers = [], index = 0, interval = null, animationSpeed = 1000;
+
+  function loadData() {
+    const product = document.getElementById("product").value;
+    const satellite = document.getElementById("satellite").value;
+    const sensor = document.getElementById("sensor").value;
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
+    const url = `/api/wms_links?product=${product}&satellite=${satellite}&sensor=${sensor}&start=${start}&end=${end}`;
+    fetch(url).then(res => res.json()).then(data => {
+      if (!data.wms_links || data.wms_links.length === 0) {
+        alert("No WMS layers found.");
+        return;
+      }
+      layers.forEach(l => map.removeLayer(l));
+      layers = [];
+
+      const isDerived = ["fcc", "ctt", "thermal"].includes(product);
+      data.wms_links.forEach(link => {
+        const indiaBounds = [[6.0, 68.0], [37.0, 97.0]];
+        const overlay = isDerived
+          ? L.imageOverlay(`/api/${product}_image?filename=${link.split('/').pop()}`, [[-2.3, 82.2], [30.9, 115.2]])
+          : L.tileLayer.wms(link, {
+              layers: product === "chlorophyll" ? "chl-a" : "sst",
+              format: "image/png", 
+              transparent: true, 
+              styles: "boxfill/rainbow"
+            });
+        layers.push(overlay);
+      });
+
+      index = 0;
+      showFrame(index);
+      updateLegend(product);
+    });
+  }
+
+  function updateLegend(product) {
+    const productLabel = document.querySelector(`#product option[value="${product}"]`).textContent;
+    let unit = "";
+    if (product === "sst") unit = " (°C)";
+    if (product === "chlorophyll") unit = " (mg/m³)";
+    document.getElementById("legend-title").innerText = productLabel + unit;
+    document.getElementById("gradient-bar").style.background =
+    colormaps[product]?.gradient || "#ccc";
+  }
+
+
+  function showFrame(i) {
+  if (layers.length === 0) return;
+  layers.forEach(l => map.removeLayer(l));
+  layers[i].addTo(map);
+
+  const layerName = layers[i].options?.layers || layers[i].getAttribution?.() || "";
+  const fileUrl = layers[i]._url || layers[i].getURL?.() || "";
+  const filename = decodeURIComponent(fileUrl.split('/').pop());
+  const product = document.getElementById("product").value;
+
+  let dateStr = "Unknown";
+  if (filename.startsWith("metop") && filename.includes("_")) {
+    const match = filename.match(/(\d{8})[_-](\d{6})/);
+    if (match) {
+      const date = match[1];
+      const time = match[2];
+      const formattedDate = `${date.slice(6, 8)}-${date.slice(4, 6)}-${date.slice(0, 4)}`;
+      const formattedTime = `${time.slice(0, 2)}:${time.slice(2, 4)}:${time.slice(4, 6)} UTC`;
+      dateStr = `Captured: ${formattedDate} ${formattedTime}`;
+    }
+  } else if (filename.startsWith("OCM_")) {
+    const dateMatch = filename.match(/OCM_(\d{2}[A-Za-z]{3}\d{4})\.nc/);
+    if (dateMatch) {
+      dateStr = `Captured: ${dateMatch[1]}`;
+    }
+  }
+  document.getElementById("timestamp").innerText =
+    `${dateStr} | Frame ${i + 1} of ${layers.length}`;
+
+  fetch(`/api/stats?filename=${filename}&product=${product}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.min !== undefined && data.max !== undefined) {
+        const minText = product === "chlorophyll" ? `${data.max} mg/m³` : `${data.min} °C`; 
+        const maxText = product === "chlorophyll" ? `${data.min} mg/m³` : `${data.max} °C`;
+        document.getElementById("min-temp").innerText = minText;
+        document.getElementById("max-temp").innerText = maxText;
+      }
+    })
+    .catch(err => {
+      console.warn("Failed to load legend range:", err);
+    });
+}
+
+  function togglePlayPause() {
+    const btn = document.getElementById("playBtn");
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+      btn.innerText = "▶ Play";
+    } else {
+      interval = setInterval(() => {
+        index = (index + 1) % layers.length;
+        showFrame(index);
+      }, animationSpeed);
+      btn.innerText = "⏸ Pause";
+    }
+  }
+
+  function nextFrame() {
+    index = (index + 1) % layers.length;
+    showFrame(index);
+  }
+
+  function prevFrame() {
+    index = (index - 1 + layers.length) % layers.length;
+    showFrame(index);
+  }
+
+  function shareMap() {
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const shareURL = `${location.origin}${location.pathname}?lat=${center.lat.toFixed(4)}&lon=${center.lng.toFixed(4)}&z=${zoom}`;
+    navigator.clipboard.writeText(shareURL).then(() => {
+      alert("Link copied to clipboard:\n" + shareURL);
+    });
+  }
+
+  let viewHistory = [], viewIndex = -1;
+  map.on("moveend", () => {
+    const view = map.getCenter();
+    viewHistory = viewHistory.slice(0, viewIndex + 1);
+    viewHistory.push([view.lat, view.lng, map.getZoom()]);
+    viewIndex = viewHistory.length - 1;
+  });
+
+  function undoView() {
+    if (viewIndex > 0) {
+      viewIndex--;
+      const [lat, lng, zoom] = viewHistory[viewIndex];
+      map.setView([lat, lng], zoom);
+    }
+  }
+
+  function redoView() {
+    if (viewIndex < viewHistory.length - 1) {
+      viewIndex++;
+      const [lat, lng, zoom] = viewHistory[viewIndex];
+      map.setView([lat, lng], zoom);
+    }
+  }
+
+  function openSettings() {
+    document.getElementById("settingsModal").style.display = "block";
+  }
+
+  function closeSettings() {
+    document.getElementById("settingsModal").style.display = "none";
+    animationSpeed = parseInt(document.getElementById("speedRange").value);
+  }
+
+  function showAbout() {
+    alert("INCOIS Ocean Forecast System\nVisualizing SST, FCC, CTT, Thermal, Chlorophyll\nBuilt with THREDDS, Flask, Leaflet.");
+  }
+
+  window.onload = () => {
+    const url = new URL(location.href);
+    const lat = parseFloat(url.searchParams.get("lat"));
+    const lon = parseFloat(url.searchParams.get("lon"));
+    const zoom = parseInt(url.searchParams.get("z"));
+    if (!isNaN(lat) && !isNaN(lon) && !isNaN(zoom)) {
+      map.setView([lat, lon], zoom);
+    }
+  };
+
+
+fetch(`/api/ctt_image?filename=${link.split('/').pop()}`)
+  .then(response => {
+    const boundsHeader = response.headers.get("X-Bounds");
+    if (!boundsHeader) {
+      throw new Error("Missing X-Bounds header from server.");
+    }
+    const [lat1, lon1, lat2, lon2] = boundsHeader.split(',').map(Number);
+    return response.blob().then(blob => {
+      const url = URL.createObjectURL(blob);
+      L.imageOverlay(url, [[lat1, lon1], [lat2, lon2]]).addTo(map);
+    });
+  })
+  .catch(error => {
+    console.error("Failed to load CTT image:", error);
+  });
+
+
+</script>
+</body>
+</html>
